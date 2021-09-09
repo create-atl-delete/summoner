@@ -1,5 +1,5 @@
 ## About
-Summoner is a Powershell-based CLI tool for creating secure interactive connections to AWS instances over SSM tunnels.
+Summoner is a Powershell-based tool for creating secure interactive connections to AWS instances over SSM tunnels.
 
 ### What's an SSM tunnel? 
 SSM is short for <a href="https://docs.aws.amazon.com/systems-manager/latest/userguide/what-is-systems-manager.html">Systems Manager</a>. It's an agent-based service provided by AWS for managing instances. The SSM agent comes pre-installed on many Windows and Linux AMIs in the AWS Marketplace. By installing the AWS CLI and the SSM plugin on your local machine, you can establish a secure tunnel to an instance and interact with it via the AWS CLI. Taking that concept a step further, you can configure RDP and SSH to route over that tunnel.
@@ -7,7 +7,7 @@ SSM is short for <a href="https://docs.aws.amazon.com/systems-manager/latest/use
 <img src="https://raw.githubusercontent.com/create-atl-delete/summoner/main/images/demo.png" width=60%>
 
 ### Why do I need this? 
-Security and stability. The SSM agent running on the instance only needs outbound internet connectivity. **There's no need for the instance to have a public IP or any inbound rules in its Security Groups.** The instance can only be accessed via SSM by a user that has authenticated to the AWS account in which it resides. Depending on your orgnization, the route used by Summoner connections might also be a more direct route.
+Security and stability. The SSM agent running on the instance only needs outbound internet connectivity. **There's no need for the instance to have a public IP or any inbound rules in its Security Groups.** If configured as such, the instance can only be accessed via SSM by a user that has authenticated to the AWS account in which it resides. Depending on your orgnization, the route used by Summoner connections might also be a more direct route.
 
 ### But wait, there's more! 
 Summoner can also configure your local machine for USB redirection. You can plug in a physical software license dongle (or any other USB device) and route it through RDP to the instance.
@@ -28,12 +28,12 @@ Prepare.ps1 will install:
 - (optional) aws-azure-login
 
 It will also:
-- create a configuration file for aws-azure-login
 - create a configuration file for ssh
+- (optional) create a configuration file for aws-azure-login
 - (optional) enable USB redirection
 
 ## Evocation
-To start a session, simply right-click connect.ps1 and select "Run with Powershell." If you are already authenticated to AWS by way of<a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html">temporary credentials</a>, the script will proceed. Otherwise, it will prompt for login using <a href="https://github.com/sportradar/aws-azure-login">aws-azure-login</a>. Once authenticated, the script prompt for an instance ID and protocol.
+To start a session, simply right-click connect.ps1 and select "Run with Powershell." If you are already authenticated to AWS by way of <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html">temporary credentials</a>, the script will proceed. Otherwise, it will prompt for login using <a href="https://github.com/sportradar/aws-azure-login">aws-azure-login</a>. Once authenticated, the script prompt for an instance ID and protocol.
 
 If desired, you can edit summoner.rdp to change the audio and video settings.
 
