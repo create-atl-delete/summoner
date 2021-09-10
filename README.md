@@ -45,7 +45,7 @@ Ensure that connect.ps1's dependencies have been added to the System/Path enviro
 3. Hit Enter 
 4. Click Environment Variables...
 5. Select Path under System Variables
-<img src="https://raw.githubusercontent.com/create-atl-delete/summoner/main/images/env.png" width=60%>
+<img src="https://raw.githubusercontent.com/create-atl-delete/summoner/main/images/env2.png" width=60%>
 
 6. Select Path under System Variables
 7. Click Edit 
