@@ -45,13 +45,10 @@ Ensure that connect.ps1's dependencies have been added to the System/Path enviro
 3. Hit Enter 
 4. Click Environment Variables...
 5. Select Path under System Variables
-<img src="https://raw.githubusercontent.com/create-atl-delete/summoner/main/images/env2.png" width=60%>
-
-6. Select Path under System Variables
-7. Click Edit 
-8. Confirm that the following are in the list:
+6. Click Edit 
+7. Confirm that the following are in the list:
     - C:\Program Files\Amazon\SessionManagerPlugin\bin
     - C:\Program Files\Amazon\AWSCLIV2
     - C:\Program Files\nodejs
-9. Click New to add them if needed
-10. Close all Powershell windows
+8. Click New to add them if needed
+9. Close all Powershell windows
