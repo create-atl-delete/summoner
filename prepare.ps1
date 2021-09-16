@@ -3,8 +3,8 @@
 #>
 
 param (
-    $Login = "y",
-    $USB = "y",
+    $Login = "null",
+    $USB = "null",
     $Base = ("Amazon\AWSCLIV2", "Amazon\SessionManagerPlugin"),
     $Full = ("Amazon\AWSCLIV2", "Amazon\SessionManagerPlugin", "nodejs", "nodejs\node_modules\npm"),
     $TenantID = "null",
@@ -21,17 +21,17 @@ If (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]
 }
 
 Write-Host "This script may throw errors if any of the applications it attempts to install are already installed. These can be ignored."
-$Login = Read-Host "Will you be using aws-azure-login for authentication? ([y]/n)" 
+$Login = Read-Host "Will you be using aws-azure-login for authentication? (y/n)" 
 If ($Login -eq "y") {
     $TenantID = Read-Host "Enter your Azure Tenant ID"
-    $AppID = Read-Host "Enter your App ID"
-    $UserName = Read-Host "Enter your full username, ex. tpurner@domain.com"
+    $AppID = Read-Host "Enter your App ID URL"
+    $UserName = Read-Host "Enter your full username, ex. name@domain.com"
     $Region = Read-Host "Enter your default region, ex. us-east-1"
 }
 Else {
-    Write-host = "Remember to add your temporary credentials to $HOME/.aws/credentials if you have not already."
+    Write-host = "Remember to add your temporary credentials to $HOME/.aws/credentials."
 }
-$USB = Read-Host "Do you want your machine configured for USB redirection? ([y]/n)"
+$USB = Read-Host "Do you want your machine configured for USB redirection? (y/n)"
 If ($USB -eq "y") {
     Write-host "This script will force a reboot upon completion. Exit now to cancel."
 }
@@ -56,7 +56,6 @@ If ($Login -eq "y") {
     refreshenv
     # Install aws-azure-login
     npm install -g aws-azure-login
-    npm update -g
 }
 
 # Install SSM plugin 

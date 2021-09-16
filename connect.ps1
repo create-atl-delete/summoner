@@ -7,7 +7,8 @@ param (
 	$InstanceID = "null",
 	$Path = "null",
 	$Username = "administrator",
-	$Proto = "rdp"
+	$Proto = "rdp",
+	$Region = "null"
 )
 
 Write-Host " __                    
@@ -28,27 +29,35 @@ Try {
 		While (!$?)
 	}
 	Write-Host "Authentcated."
-	# Begin either rdp or ssh connection 
 	$InstanceID = Read-Host "Enter the instance ID" 
+	# Get default region
+	$Region = aws configure get region
+	Write-Host "Your default region is $Region."
+	$Region = Read-Host "If the instance is in this region, press Enter. Else, enter the appropriate region (ex. eu-west-2)"
+	# If no input, set back to default
+	If ($Region.Length -eq 0){
+		$Region = aws configure get region
+	}
 	$Proto = Read-Host "Enter the desired protocol ([rdp]/ssh)"
+	# Begin either rdp or ssh connection 
 	If ($Proto -eq "ssh") {
 		$Path = Read-Host "Enter the path of the certificate file"
 		$Username = Read-Host "Enter the username ([administrator]/ec2-user/ubuntu)"
 		Write-Host "Starting SSH session..."
 		# Launch SSH 
 		ssh -i $Path $Username@$InstanceID
-		# Powershell window is hijacked for ssh and script effectively ends
+		# Powershell drops into ssh and script effectively ends
 	}
 	Else {
 		Write-Host "Creating SSM tunnel..."
 		# Start SSM tunnel in background, so script can continue
 		Start-Job -ScriptBlock {
-			param ($arg1 = $InstanceID) aws ssm start-session --target $arg1 --document-name AWS-StartPortForwardingSession --parameters portNumber="3389",localPortNumber="56789"
-		} -ArgumentList $InstanceID
+			param ($arg1 = $InstanceID, $arg2 = $Region) aws ssm start-session --target $arg1 --region $arg2 --document-name AWS-StartPortForwardingSession --parameters portNumber="3389",localPortNumber="56789"
+		} -ArgumentList ($InstanceID, $Region)
 		# Wait a few seconds for the SSM tunnel to be built
 		Start-Sleep -s 3
 		Write-Host "Starting RDP session..."
-		# Launch RDP to localhost
+		# Launch RDP
 		mstsc summoner.rdp
 		Write-Host "This window must remain open for the RDP session."
 		Write-Host -NoNewLine "Press any key to exit..."; $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
