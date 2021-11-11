@@ -9,14 +9,13 @@ param (
     $Full = ("Amazon\AWSCLIV2", "Amazon\SessionManagerPlugin", "nodejs", "nodejs\node_modules\npm"),
     $TenantID = "null",
     $AppID = "null",
-    $UserName = "null",
     $Region = "null"
 )
 
 # Check if elevated 
 If (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
     Write-Warning "Insufficient permissions. Please re-open PowerShell as an administrator and run this script again."
-    Write-Host -NoNewLine "Press any key to exit..."; $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    Read-Host "Press ENTER to exit"
     Exit 1
 }
 
@@ -25,15 +24,14 @@ $Login = Read-Host "Will you be using aws-azure-login for authentication? (y/n)"
 If ($Login -eq "y") {
     $TenantID = Read-Host "Enter your Azure Tenant ID"
     $AppID = Read-Host "Enter your App ID URL"
-    $UserName = Read-Host "Enter your full username, ex. name@domain.com"
-    $Region = Read-Host "Enter your default region, ex. us-east-1"
+    $Region = Read-Host "Enter your default region (ex. us-east-1)"
 }
 Else {
     Write-host = "Remember to add your temporary credentials to $HOME/.aws/credentials."
 }
-$USB = Read-Host "Do you want your machine configured for USB redirection? (y/n)"
+$USB = Read-Host "Do you want your local machine configured for USB redirection? (y/n)"
 If ($USB -eq "y") {
-    Write-host "This script will force a reboot upon completion. Exit now to cancel."
+    Write-host "This script will force a reboot upon completion."
 }
 
 Write-Host "Creating Restore Point..."
@@ -49,10 +47,9 @@ choco install awscli
 # Optionally install aws-azure-login
 If ($Login -eq "y") {
     choco install nodejs-lts
-    # Force an update of the System/Path variable so refreshenv (function from chocolatey) can be run after the node install 
-    $env:ChocolateyInstall = Convert-Path "$((Get-Command choco).Path)\..\.."   
-    Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
-    # The following is required to run npm install 
+    # Import refreshenv (a function from chocolatey) so it can be run after the node install 
+    Import-Module "C:\ProgramData\chocolatey\helpers\chocolateyProfile.psm1" 
+    # The is required to run the npm install 
     refreshenv
     # Install aws-azure-login
     npm install -g aws-azure-login
@@ -72,7 +69,7 @@ If ($Login -eq "y") {
         }
         Else {
             Write-Error "${Path} install failed. Please install manually and run this script again."
-            Write-Host -NoNewLine "Press any key to exit..."; $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            Read-Host "Press ENTER to exit"
             Exit 1
         }
     }
@@ -85,46 +82,30 @@ Else {
         }
         Else {
             Write-Error "${Path} install failed. Please install manually and run this script again."
-            Write-Host -NoNewLine "Press any key to exit..."; $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            Read-Host "Press ENTER to exit"
             Exit 1
         }
     }
 }
 
 Write-Host "Cleaning up..."
-Remove-Item -Path $HOME\SSMSetup.exe
-Write-Host "Installation complete. Proceeding to configuration..."
+Remove-Item $HOME\SSMSetup.exe
+Write-Host "Installations complete. Proceeding to configuration..."
 
 # Configure aws-azure-login default profile
 # If config already exists, make a backup copy - else, make new file 
 If ($Login -eq "y") { 
-    If (Test-Path -Path $HOME\.aws\config) {
-        Copy-Item -Path $HOME\.aws\config -Destination $HOME\.aws\config.old
+    If (Test-Path $HOME\.aws\config) {
+        Copy-Item $HOME\.aws\config $HOME\.aws\config.old
     }
     Else {
-        New-Item -Path $HOME\.aws -ItemType Directory -ErrorAction SilentlyContinue
-        New-Item -Path $HOME\.aws\config -ItemType File
+        New-Item $HOME\.aws\config -ItemType File -Force
     }
-    Set-Content -Path $HOME\.aws\config -Value "[default]
+    Set-Content $HOME\.aws\config -Value "[default]
     azure_tenant_id=${TenantID}
     azure_app_id_uri=${AppID}
-    azure_default_username=${Username}
-    azure_default_duration_hours=12
     region=${Region}"
 }
-
-# Configure ssh to work with instance ID
-# If config already exists, make a backup copy - else, make new file
-If (Test-Path -Path $HOME\.ssh\config) {
-    Copy-Item -Path $HOME\.ssh\config -Destination $HOME\.ssh\config.old
-}
-Else {
-    New-Item -Path $HOME\.ssh -ItemType Directory -ErrorAction SilentlyContinue
-    New-Item -Path $HOME\.ssh\config -ItemType File
-}
-Set-Content -Path $HOME\.ssh\config -Value '# SSH over SSM
-host i-* mi-*
-ProxyCommand C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe "aws ssm start-session --target %h --document-name AWS-StartSSHSession --parameters portNumber=%p"'
 
 # Optionally configure USB redirect
 If ($USB -eq "y") {
@@ -137,6 +118,6 @@ If ($USB -eq "y") {
 }
 Else {
     Write-Host "Configuration complete."
-    Write-Host -NoNewLine "Press any key to exit..."; $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    Read-Host "Press ENTER to exit"
     Exit 0
 }
