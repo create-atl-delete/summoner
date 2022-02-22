@@ -2,7 +2,9 @@
     This script will install and configure prerequisites for connect.ps1.
 #>
 
-$Cleanup = 0
+param (
+    $Cleanup = 0
+)
 
 # Install AWS CLI 
 If (!(Test-Path C:\Program Files\Amazon\AWSCLIV2)) {
@@ -21,18 +23,20 @@ If (!(Test-Path C:\Program Files\Amazon\SessionManagerPlugin)) {
 If ($Cleanup) { Remove-Item $HOME\summoner_temp\ -Recurse } 
 
 # Optionally configure USB redirect
-$USB = Read-Host "Do you want to configure your machine for USB redirection? (y/n):"
-Switch ($USB) {
-    y {
+$Choices = [System.Management.Automation.Host.ChoiceDescription[]] @("&Yes", "&No", "&Cancel")
+$Choice = $host.UI.PromptForChoice("Do you want to configure your machine for USB redirection?:", "", $Choices, 0)
+Switch ($Choice) {
+    0 {
         Write-Host "Updating group policy to enable USB Redirection..."
         Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services\Client" -Name fUsbRedirectionEnableMode -Value 2
         gpupdate /force
     }
-    n {
-        Continue
+    1 {
+        Return
     }
-    default {
-        Write-Warning "Please enter either y or n."
+    2 {
+		Write-Warning "Operation canceled."
+		Exit 0
     }
     Write-Host "Prerequisite tasks complete."
     Read-Host "Press ENTER to exit"
