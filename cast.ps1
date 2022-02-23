@@ -1,11 +1,7 @@
-<#
-	This script starts a connection via RDP over SSM to a specified instance
-#>
-
 param (
-	$Username = "administrator",
-	$Protocol = "rdp",
-	$Port = Get-Random -Min 50000 -Max 60000
+	$Profile = "default", # Update this to your desired profile 
+	$Port = (Get-Random -Min 50000 -Max 60000),
+	$ErrorActionPreference = "Stop"
 )
 
 Write-Host "
@@ -17,17 +13,17 @@ __)|_|||||||(_)| )(-|
 
 Try {
 	Write-Host "Verifying credentials..."
-	aws sts get-caller-identity | Out-Null
+	aws sts get-caller-identity --profile $Profile | Out-Null
 	If (!$?) {
 		Do {
 			Write-host "No valid credentials found. Please update credentials and press ENTER to try again" -Back Black -Fore Yellow -NoNewLine
 			Read-Host 
-			aws sts get-caller-identity | Out-Null
+			aws sts get-caller-identity --profile $Profile | Out-Null
 		}
 		While (!$?)
 	}
 	$InstanceID = Read-Host "Enter the Instance ID:" 
-	$Region = aws configure get region
+	$Region = aws configure get region --profile $Profile
 	$Overrides = [System.Management.Automation.Host.ChoiceDescription[]] @("&Yes", "&No", "&Cancel")
 	$Override = $host.UI.PromptForChoice("Your default region is $Region. Is this where the Instance is?", "", $Choices, 0)
 	Switch ($Override) {
@@ -49,9 +45,9 @@ Try {
 			Write-Host "Starting RDP session..."
 			# Start SSM tunnel in background, so script can continue
 			Start-Job -ScriptBlock {
-				param ($1 = $InstanceID, $2 = $Region, $3 = $Port) 
-				aws ssm start-session --target $1 --region $2 --document-name AWS-StartPortForwardingSession --parameters portNumber="3389", localPortNumber="$3"
-			} -ArgumentList ($InstanceID, $Region, $Port)
+				param ($0 = $Profile, $1 = $InstanceID, $2 = $Region, $3 = $Port) 
+				aws ssm start-session --profile $0 --target $1 --region $2 --document-name AWS-StartPortForwardingSession --parameters portNumber="3389",localPortNumber="$3"
+			} -ArgumentList ($Profile $InstanceID, $Region, $Port)
 			# Wait a few seconds for the SSM tunnel to be built
 			Start-Sleep -s 5
 			mstsc /v:localhost:$Port
@@ -64,9 +60,9 @@ Try {
 			$Username = Read-Host "Enter the username:"
 			Write-Host "Starting SSH session..."
 			Start-Job -ScriptBlock {
-				param ($1 = $InstanceID, $2 = $Region, $3 = $Port) 
-				aws ssm start-session --target $1 --region $2 --document-name AWS-StartSSHSession --parameters portNumber=$3
-			} -ArgumentList ($InstanceID, $Region, $Port)
+				param ($0 = $Profile, $1 = $InstanceID, $2 = $Region, $3 = $Port) 
+				aws ssm start-session --profile $0 --target $1 --region $2 --document-name AWS-StartSSHSession --parameters portNumber=$3
+			} -ArgumentList ($Profile, $InstanceID, $Region, $Port)
 			# Wait a few seconds for the SSM tunnel to be built
 			Start-Sleep -s 5
 			ssh -i $Path $Username@$InstanceID -p $Port
