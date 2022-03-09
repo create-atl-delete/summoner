@@ -49,24 +49,25 @@ Try {
 				aws ssm start-session --profile $0 --target $1 --region $2 --document-name AWS-StartPortForwardingSession --parameters portNumber="3389",localPortNumber="$3"
 			} -ArgumentList ($Profile $InstanceID, $Region, $Port)
 			# Wait a few seconds for the SSM tunnel to be built
-			Start-Sleep -s 5
+			Start-Sleep -s 3
 			mstsc /v:localhost:$Port
 			Write-Warning "This window must remain open for the RDP session."
 			Read-Host "Press ENTER to exit"
 			Exit 0
 		}
 		1 {
-			$Path = Read-Host "Enter the path to the certificate file:"
-			$Username = Read-Host "Enter the username:"
+			$Path = Read-Host "Enter path to the certificate file:"
+			$Username = Read-Host "Enter username:"
 			Write-Host "Starting SSH session..."
 			Start-Job -ScriptBlock {
 				param ($0 = $Profile, $1 = $InstanceID, $2 = $Region, $3 = $Port) 
-				aws ssm start-session --profile $0 --target $1 --region $2 --document-name AWS-StartSSHSession --parameters portNumber=$3
+				aws ssm start-session --profile $0 --target $1 --region $2 --document-name AWS-StartPortForwardingSession --parameters portNumber="22",localPortNumber="$3"
 			} -ArgumentList ($Profile, $InstanceID, $Region, $Port)
 			# Wait a few seconds for the SSM tunnel to be built
-			Start-Sleep -s 5
+			Start-Sleep -s 3
 			ssh -i $Path $Username@$InstanceID -p $Port
 			# Powershell drops into ssh and script effectively ends
+			Exit 0
 		}
 		2 {
 			Write-Warning "Operation canceled."
