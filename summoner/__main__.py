@@ -40,6 +40,14 @@ def get_args():
         required=True,
     )
     select.add_argument(
+        "-s",
+        "--sts_arn",
+        help="Assume role ARN.",
+        dest="sts_arn",
+        type=str,
+        default=None
+    )
+    select.add_argument(
         "-r",
         "--region",
         help="AWS Region the Instance in.",
@@ -56,6 +64,14 @@ def get_args():
         dest="aws_profile",
         type=str,
         required=True,
+    )
+    select.add_argument(
+        "-s",
+        "--sts_arn",
+        help="Assume role ARN.",
+        dest="sts_arn",
+        type=str,
+        default=None
     )
     instance.add_argument(
         "-r",
